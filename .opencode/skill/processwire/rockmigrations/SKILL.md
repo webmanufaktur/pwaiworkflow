@@ -45,6 +45,16 @@ $rm->installModule('LanguageSupportFields'); // ... plus PageNames, Tabs
 $rm->setFieldData('title', ['type' => 'textLanguage']);
 ```
 
+### Common Mistakes
+
+```php
+// DON'T - watch() is for file/module watching only
+$rm->watch($rm->createRole('editor', ['page-edit']));
+
+// DO - direct API call
+$rm->createRole('editor', ['page-edit']);
+```
+
 ## Field Definitions
 
 ### Standard Properties
@@ -115,9 +125,9 @@ All fields support these keys. Omitted from examples for brevity.
 'my_body' => [
   'type' => 'textarea',
   'inputfieldClass' => 'InputfieldCKEditor',
-  'contentType' => FieldtypeTextarea::contentTypeHTML,
+  'contentType' => 2,  // 2=HTML content type
   'formatTags' => 'p;h2;h3;h4',
-  'toggles' => [InputfieldCKEditor::toggleCleanNBSP],
+  'toggles' => [3],    // 3=CleanNBSP toggle
   'toolbar' => 'Format, Bold, Italic, BulletedList, PWLink, Source', // Simplified
 ],
 
@@ -125,7 +135,7 @@ All fields support these keys. Omitted from examples for brevity.
 'my_tiny' => [
   'type' => 'textarea',
   'inputfieldClass' => 'InputfieldTinyMCE',
-  'contentType' => FieldtypeTextarea::contentTypeHTML,
+  'contentType' => 2,  // 2=HTML content type
   'settingsFile' => '/site/modules/RockMigrations/TinyMCE/simple.json',
 ],
 ```
@@ -225,6 +235,13 @@ Apply to fields or templates.
 'viewRoles' => ['guest', 'editor'],
 'createRoles' => ['admin'], // Templates only
 'addRoles' => ['admin'],    // Templates only (add children)
+```
+
+Creating roles:
+
+```php
+$rm->createRole('editor', ['page-edit', 'page-view']);
+$rm->createRole('admin', ['page-edit', 'page-view', 'page-create']);
 ```
 
 ### Template Family \& Sort
