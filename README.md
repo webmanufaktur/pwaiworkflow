@@ -15,7 +15,9 @@ OpenCode is an open-source AI workflow platform that lets teams compose agents, 
 
 ## Agents
 
-- _soon_
+### General
+
+- [OpenCode Agent Generator](./.opencode/agent/general/opencode-agent-generator.md)
 
 ## Rules
 
@@ -27,6 +29,10 @@ OpenCode is an open-source AI workflow platform that lets teams compose agents, 
 
 - [RockMigrations](./.opencode/skill/processwire/rockmigrations/SKILL.md)
 
+### PHP
+
+- [ProcessWire Standards](./.opencode/skill/php/php-processwire-standards/SKILL.md)
+
 ### Git
 
 - [Commit Message Generator](./.opencode/skill/git/commit-generator/SKILL.md)
@@ -34,6 +40,12 @@ OpenCode is an open-source AI workflow platform that lets teams compose agents, 
 ### Markdown
 
 - [Github Markdown Alerts](./.opencode/skill/markdown/alerts/SKILL.md)
+
+### General
+
+- [Prompt Rephraser](./.opencode/skill/general/prompt-rephraser/SKILL.md)
+- [OpenCode Skill Generator](./.opencode/skill/general/opencode-skill-generator/SKILL.md)
+- [Prompt Optimizer](./.opencode/skill/general/prompt-optimizer/SKILL.md)
 
 ---
 
