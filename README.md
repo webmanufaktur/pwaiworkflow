@@ -27,7 +27,17 @@ OpenCode is an open-source AI workflow platform that lets teams compose agents, 
 
 ### ProcessWire
 
+- [API](./.opencode/skill/processwire/api/SKILL.md)
+- [Fields](./.opencode/skill/processwire/fields/SKILL.md)
+- [Getting Started](./.opencode/skill/processwire/getting-started/SKILL.md)
+- [Hooks](./.opencode/skill/processwire/hooks/SKILL.md)
+- [Modules](./.opencode/skill/processwire/modules/SKILL.md)
+- [Multi-language](./.opencode/skill/processwire/multi-language/SKILL.md)
 - [RockMigrations](./.opencode/skill/processwire/rockmigrations/SKILL.md)
+- [Security](./.opencode/skill/processwire/security/SKILL.md)
+- [Selectors](./.opencode/skill/processwire/selectors/SKILL.md)
+- [Templates](./.opencode/skill/processwire/templates/SKILL.md)
+- [User Access](./.opencode/skill/processwire/user-access/SKILL.md)
 
 ### PHP
 
