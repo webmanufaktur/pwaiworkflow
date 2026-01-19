@@ -1,6 +1,7 @@
 ---
 name: opencode-agent-generator
 description: Generate OpenCode agent configurations (Markdown/JSON) based on user requirements.
+mode: subagent
 license: MIT
 compatibility: opencode
 metadata:
