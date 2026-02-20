@@ -91,8 +91,9 @@ class HelloWorld extends WireData implements Module {
 ### Using the Module
 
 ```php
-$module = $modules->get('HelloWorld');
-echo $module->hello();
+// Best Practice: Erst prüfen, dann holen (get() installiert fehlende Module automatisch!)
+$module = $modules->isInstalled('HelloWorld') ? $modules->get('HelloWorld') : null;
+if($module) echo $module->hello();
 ```
 
 ---
@@ -522,6 +523,26 @@ public static function getModuleInfo() {
 
 ## Common Patterns
 
+### Safely Accessing Modules
+
+`$modules->get()` installs missing modules automatically. Check first:
+
+```php
+// Best Practice: Check before get
+$module = $modules->isInstalled('ModuleName') 
+    ? $modules->get('ModuleName') 
+    : null;
+
+if($module) {
+    // Module is available
+} else {
+    // Module not installed - graceful degradation
+}
+
+// Alternative (PW 3.0.184+): Prevent auto-install
+$module = $modules->get('ModuleName', ['noInstall' => true]);
+```
+
 ### Accessing API in Modules
 
 ```php
@@ -600,24 +621,26 @@ $this->log->error('my-module', 'An error occurred');
 
 ## Pitfalls / Gotchas
 
-1. **Refresh after changes**: Always Modules > Refresh after modifying `getModuleInfo()`.
+1. **$modules->get() auto-installs**: `get()` automatically installs missing modules. Use `isInstalled()` first or `['noInstall' => true]` option (PW 3.0.184+).
 
-2. **Naming conventions**: Module class name must match filename (e.g., `HelloWorld` class in `HelloWorld.module`).
+2. **Refresh after changes**: Always Modules > Refresh after modifying `getModuleInfo()`.
 
-3. **Namespace required**: Always use `namespace ProcessWire;` in PW 3.x.
+3. **Naming conventions**: Module class name must match filename (e.g., `HelloWorld` class in `HelloWorld.module`).
 
-4. **Singular modules**: If `singular => true`, only one instance exists. Access via `$modules->get()`.
+4. **Namespace required**: Always use `namespace ProcessWire;` in PW 3.x.
 
-5. **init() vs ready()**:
+5. **Singular modules**: If `singular => true`, only one instance exists. Access via `$modules->get()`.
+
+6. **init() vs ready()**:
    - `init()`: Called early, API may not be ready
    - `ready()`: Called when API is ready, safe for hooks
 
-6. **Autoload performance**: Only autoload if necessary. Use conditional autoload when possible.
+7. **Autoload performance**: Only autoload if necessary. Use conditional autoload when possible.
 
-7. **LazyCron timing**: Depends on page views. Low-traffic sites may have delayed execution.
+8. **LazyCron timing**: Depends on page views. Low-traffic sites may have delayed execution.
 
-8. **Hook method prefixes**: Use `___` (three underscores) to make methods hookable.
+9. **Hook method prefixes**: Use `___` (three underscores) to make methods hookable.
 
-9. **Version numbering**: Use integers (100 = 1.0.0, 101 = 1.0.1, 200 = 2.0.0).
+10. **Version numbering**: Use integers (100 = 1.0.0, 101 = 1.0.1, 200 = 2.0.0).
 
-10. **Uninstall cleanup**: Implement `___uninstall()` to clean up module data/pages.
+11. **Uninstall cleanup**: Implement `___uninstall()` to clean up module data/pages.
