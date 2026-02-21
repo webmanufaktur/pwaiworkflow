@@ -133,19 +133,88 @@ public static function getModuleInfo() {
 | `requires`   | array       | Dependencies                 |
 | `installs`   | array       | Modules to install with this |
 | `permission` | string      | Required permission          |
+| `permissions`| array       | Multiple permissions to create |
 | `icon`       | string      | FontAwesome icon name        |
+
+### Custom Permissions
+
+Define multiple permissions that are auto-created on install:
+
+```php
+public static function getModuleInfo() {
+    return [
+        'title' => 'My Module',
+        'permission' => 'my-module-view',  // Main permission
+        'permissions' => [
+            'my-module-view' => 'View items',
+            'my-module-edit' => 'Edit items',
+            'my-module-admin' => 'Administer module',
+        ],
+    ];
+}
+
+// Check permissions
+if($user->hasPermission('my-module-edit')) { /* ... */ }
+```
+
+### Sub-Module Installer
+
+Install helper modules automatically:
+
+```php
+public static function getModuleInfo() {
+    return [
+        'title' => 'My Suite',
+        'installs' => ['MySuiteWorker', 'MySuiteCron'],
+    ];
+}
+
+// Sub-module prevents standalone install
+class MySuiteWorker extends WireData implements Module {
+    public static function getModuleInfo() {
+        return [
+            'title' => 'Suite Worker',
+            'autoload' => true,
+            'requires' => 'MySuite',  // Requires parent
+        ];
+    }
+}
+```
 
 ### Alternative: Info File
 
-Create `HelloWorld.info.php`:
+Create `HelloWorld.info.php` (supports translatable strings):
 
 ```php
 <?php namespace ProcessWire;
 $info = [
-    'title' => 'Hello World',
-    'summary' => 'A simple example module',
+    'title' => __('Hello World', __FILE__),
+    'summary' => __('A simple example module', __FILE__),
     'version' => 1,
+    'permission' => 'hello-world',
+    'permissions' => [
+        'hello-world' => __('Use Hello World', __FILE__),
+    ],
+    'page' => [
+        'name' => 'hello-world',
+        'parent' => 'setup',
+        'title' => __('Hello World', __FILE__),
+    ],
+    'nav' => [
+        ['url' => './', 'label' => __('List', __FILE__), 'icon' => 'list'],
+        ['url' => 'add/', 'label' => __('Add New', __FILE__), 'icon' => 'plus'],
+    ],
 ];
+```
+
+Load in module init:
+
+```php
+public function init() {
+    parent::init();
+    include(__DIR__ . '/MyModule.info.php');
+    // $info now available
+}
 ```
 
 Or `HelloWorld.info.json`:
@@ -231,13 +300,75 @@ public function ready() {
 }
 ```
 
+### Behavior-Modifying Hook Modules
+
+Create modules that modify core behavior by hooking:
+
+```php
+class PageEditPerUser extends WireData implements Module, ConfigurableModule {
+
+    public static function getModuleInfo() {
+        return [
+            'title' => 'Page Edit Per User',
+            'version' => 1,
+            'autoload' => true,  // Required for hooks
+            'singular' => true,
+        ];
+    }
+
+    public function init() {
+        // Hook into Page::editable to modify access
+        $this->addHookAfter('Page::editable', $this, 'hookPageEditable');
+        $this->addHookAfter('Page::viewable', $this, 'hookPageViewable');
+    }
+
+    public function hookPageEditable($event) {
+        if($event->return) return; // Already editable
+        
+        // Custom logic - check if user has access
+        if($this->user->hasPermission('page-edit')) {
+            $event->return = $this->user->editable_pages->has($event->object);
+        }
+    }
+}
+```
+
 ---
 
 ## Module Types
 
+### WireMail Modules
+
+Custom email sending with fallback support:
+
+```php
+class WireMailMyProvider extends WireMail implements Module, ConfigurableModule {
+
+    public static function getModuleInfo() {
+        return [
+            'title' => 'My Mail Provider',
+            'version' => 1,
+        ];
+    }
+
+    public function ___send() {
+        $numSent = 0;
+        foreach($this->mail['to'] as $toEmail) {
+            // $this->mail contains: to, toName, from, fromName, subject, body, bodyHTML, headers, attachments
+            $numSent += $this->sendTo($toEmail);
+        }
+        return $numSent;
+    }
+}
+```
+
+Access email properties via `$this->mail['subject']`, `$this->mail['body']`, etc.
+
 ### Process Modules
 
-Admin applications with their own pages:
+Admin applications with their own pages. Process modules are the primary way to add custom admin tools.
+
+#### Basic Structure
 
 ```php
 class ProcessMyApp extends Process implements Module {
@@ -256,7 +387,7 @@ class ProcessMyApp extends Process implements Module {
     }
 
     public function execute() {
-        // Default view
+        // Default view: /admin/setup/my-app/
         return "<h1>My App</h1>";
     }
 
@@ -267,7 +398,314 @@ class ProcessMyApp extends Process implements Module {
 }
 ```
 
-### Fieldtype Modules
+#### Auto-Created Admin Pages
+
+The `page` property in `getModuleInfo()` tells ProcessWire to automatically create an admin page on install:
+
+```php
+'page' => [
+    'name' => 'my-tool',           // URL segment
+    'parent' => 'setup',           // Parent: 'setup', 'access', or page ID
+    'title' => 'My Tool',          // Page title (shown in nav)
+]
+```
+
+**How it works:**
+1. On install, ProcessWire creates a page under the specified parent
+2. The page's `process` field is set to this module
+3. On uninstall, the page is automatically deleted
+4. URL segments map to `execute*()` methods
+
+**Parent options:**
+| Parent | Location |
+|--------|----------|
+| `'setup'` | Admin > Setup |
+| `'access'` | Admin > Access |
+| `'root'` or `null` | Direct child of admin root |
+| Page ID | Specific parent page |
+
+#### Permissions and Access Control
+
+The `permission` property controls who can access the admin page:
+
+```php
+public static function getModuleInfo() {
+    return [
+        'title' => 'Database Backups',
+        'permission' => 'db-backup',  // Required permission to access
+        'permissions' => [
+            'db-backup' => 'Manage database backups (superuser only)',
+            'db-restore' => 'Restore database from backup',
+        ],
+    ];
+}
+```
+
+**Access flow:**
+1. User must have the specified `permission` on one of their roles
+2. If no `permission` specified, only superusers can access
+3. The `permissions` array creates new permissions on install
+4. Add permissions to roles in Admin > Access > Roles
+
+#### Navigation Tabs
+
+Add navigation tabs with the `nav` property:
+
+```php
+public static function getModuleInfo() {
+    return [
+        'title' => 'Database Backups',
+        'page' => [
+            'name' => 'db-backups',
+            'parent' => 'setup',
+            'title' => 'DB Backups',
+        ],
+        'nav' => [
+            ['url' => './', 'label' => 'View', 'icon' => 'list'],
+            ['url' => 'backup/', 'label' => 'Backup', 'icon' => 'plus-circle'],
+            ['url' => 'upload/', 'label' => 'Upload', 'icon' => 'cloud-upload'],
+        ],
+    ];
+}
+```
+
+**URL mapping:**
+| Nav URL | Method | Full URL |
+|---------|--------|----------|
+| `'./'` | `execute()` | `/admin/setup/db-backups/` |
+| `'backup/'` | `executeBackup()` | `/admin/setup/db-backups/backup/` |
+| `'upload/'` | `executeUpload()` | `/admin/setup/db-backups/upload/` |
+
+#### Complete Process Module Example
+
+```php
+<?php namespace ProcessWire;
+
+class ProcessMyTool extends Process implements Module {
+
+    public static function getModuleInfo() {
+        return [
+            'title' => 'My Admin Tool',
+            'summary' => 'A complete admin tool example',
+            'version' => 1,
+            'author' => 'Your Name',
+            'icon' => 'cog',
+            'requires' => 'ProcessWire>=3.0.0',
+            'permission' => 'my-tool',
+            'permissions' => [
+                'my-tool' => 'Use My Tool',
+                'my-tool-admin' => 'Administer My Tool',
+            ],
+            'page' => [
+                'name' => 'my-tool',
+                'parent' => 'setup',
+                'title' => 'My Tool',
+            ],
+            'nav' => [
+                ['url' => './', 'label' => 'List', 'icon' => 'list'],
+                ['url' => 'add/', 'label' => 'Add New', 'icon' => 'plus'],
+            ],
+        ];
+    }
+
+    public function ___execute() {
+        // Main list view
+        $this->headline('My Tool');
+        
+        /** @var MarkupAdminDataTable $table */
+        $table = $this->modules->get('MarkupAdminDataTable');
+        $table->headerRow(['Name', 'Status', 'Actions']);
+        
+        // Add rows...
+        
+        return $table->render();
+    }
+
+    public function ___executeAdd() {
+        // Add new item
+        $this->headline('Add New Item');
+        $this->breadcrumb('../', 'My Tool');
+        
+        /** @var InputfieldForm $form */
+        $form = $this->modules->get('InputfieldForm');
+        
+        $f = $this->modules->get('InputfieldText');
+        $f->name = 'name';
+        $f->label = 'Name';
+        $f->required = true;
+        $form->add($f);
+        
+        $f = $this->modules->get('InputfieldSubmit');
+        $f->value = 'Save';
+        $form->add($f);
+        
+        if($this->input->post('submit_save')) {
+            $form->processInput($this->input->post);
+            if(!$form->getErrors()) {
+                // Save data...
+                $this->message('Saved successfully');
+                $this->session->redirect('../');
+            }
+        }
+        
+        return $form->render();
+    }
+}
+```
+
+#### Module Config vs Admin Pages
+
+Two ways to add settings:
+
+**1. Module Configuration (ConfigurableModule)**
+- Settings in Modules > Configure
+- For global module settings
+- User must have `module-admin` permission
+
+```php
+class MyModule extends WireData implements Module, ConfigurableModule {
+    public static function getModuleConfigInputfields(array $data) {
+        $inputfields = new InputfieldWrapper();
+        // Add config fields...
+        return $inputfields;
+    }
+}
+```
+
+**2. Process Module Admin Page**
+- Full admin page with custom URL
+- For tools that manage data
+- Custom permissions per module
+
+```php
+class ProcessMyTool extends Process implements Module {
+    // Has 'page' property in getModuleInfo()
+}
+```
+
+Some modules combine both (e.g., ProcessHannaCode has admin page AND module config for editor settings).
+
+---
+
+## Modules That Modify User Access
+
+Some modules add custom fields to the user template or modify access behavior.
+
+### Adding Fields to User Template
+
+Add fields on install, remove on uninstall:
+
+```php
+class PageEditPerUser extends WireData implements Module, ConfigurableModule {
+
+    public function ___install() {
+        // Create a new field
+        $field = new Field();
+        $field->name = 'editable_pages';
+        $field->label = 'Pages user may edit';
+        $field->type = $this->modules->get('FieldtypePage');
+        $field->inputfield = 'InputfieldPageListSelectMultiple';
+        $field->description = 'Select pages this user can edit.';
+        $field->save();
+
+        // Add to user template's fieldgroup
+        $fieldgroup = $this->fieldgroups->get('user');
+        $fieldgroup->add($field);
+        $fieldgroup->save();
+
+        $this->message("Added field 'editable_pages' to user template.");
+    }
+
+    public function ___uninstall() {
+        // Remove field from user template
+        $field = $this->fields->get('editable_pages');
+        $fieldgroup = $this->fieldgroups->get('user');
+        
+        if($field && $fieldgroup) {
+            $fieldgroup->remove($field);
+            $fieldgroup->save();
+        }
+        
+        // Delete the field
+        if($field) {
+            $this->fields->delete($field);
+        }
+        
+        $this->message("Removed field 'editable_pages'");
+    }
+}
+```
+
+### Hooking Access Methods
+
+Modify `Page::editable` or `Page::viewable` to implement custom access:
+
+```php
+class PageEditPerUser extends WireData implements Module, ConfigurableModule {
+
+    public static function getModuleInfo() {
+        return [
+            'title' => 'Page Edit Per User',
+            'autoload' => true,  // Required for hooks
+            'singular' => true,
+        ];
+    }
+
+    public function init() {
+        // Hook after Page::editable to add our logic
+        $this->addHookAfter('Page::editable', $this, 'hookPageEditable');
+        $this->addHookAfter('Page::viewable', $this, 'hookPageViewable');
+    }
+
+    public function hookPageEditable($event) {
+        // If already editable by core rules, skip
+        if($event->return) return;
+
+        $page = $event->object;
+        
+        // Check if user has page-edit permission
+        if($this->user->hasPermission('page-edit')) {
+            // Check if page is in user's editable_pages field
+            $event->return = $this->user->editable_pages->has($page);
+        }
+    }
+}
+```
+
+### Access to Module Admin Pages
+
+Access is granted through the permission system:
+
+1. **Define permission** in `getModuleInfo()`:
+   ```php
+   'permission' => 'my-tool-access',
+   'permissions' => [
+       'my-tool-access' => 'Access My Tool',
+   ],
+   ```
+
+2. **Permission is auto-created** when module is installed
+
+3. **Add permission to roles** in Admin > Access > Roles
+
+4. **Users with that role** can access the module's admin page
+
+5. **In code**, check permissions:
+   ```php
+   // In module methods
+   if(!$this->user->hasPermission('my-tool-access')) {
+       throw new WirePermissionException('No access');
+   }
+   
+   // Or check for superuser
+   if(!$this->user->isSuperuser()) {
+       throw new WireException('Superuser required');
+   }
+   ```
+
+---
+
+## Fieldtype Modules
 
 Define new field types:
 
@@ -644,3 +1082,9 @@ $this->log->error('my-module', 'An error occurred');
 10. **Version numbering**: Use integers (100 = 1.0.0, 101 = 1.0.1, 200 = 2.0.0).
 
 11. **Uninstall cleanup**: Implement `___uninstall()` to clean up module data/pages.
+
+12. **WireMail routing**: If using WireMailRouter, it intercepts all mail. Test with `$mail->new(['module' => 'WireMailSmtp'])` to bypass.
+
+13. **Hook order matters**: When multiple modules hook the same method, load order affects execution. Use hook priority if needed.
+
+14. **Session state in wizards**: Use `$session->getFor($this, 'key')` to namespace session data per module.
