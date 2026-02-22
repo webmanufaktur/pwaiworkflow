@@ -273,3 +273,58 @@ $rm->createRole('admin', ['page-edit', 'page-view', 'page-create']);
 3. **Naming**: `snake_case` for fields, `kebab-case` for templates.
 4. **Repeaters**: Always include `title` in `fields`.
 5. **Clean Migrations**: Avoid inline field definitions in template arrays.
+   D
+
+## Database Changes
+
+### ALWAYS Use RockMigrations
+
+When you need to create or modify:
+
+- **Fields** - Use `$rm->createField()`
+- **Templates** - Use `$rm->createTemplate()`
+- **Pages** - Use `$rm->createPage()`
+- **Fieldgroups** - Let RockMigrations handle automatically
+
+```php
+// CORRECT - Always use RockMigrations
+$rm->createField('my_field', 'text', ['label' => 'My Field']);
+$rm->createTemplate('my-template', ['label' => 'My Template']);
+$rm->createPage(template: 'my-template', parent: '/', title: 'My Page');
+
+// WRONG - Never change database directly
+// $this->fields->save($field);  // Don't do this
+// $this->templates->save($template);  // Don't do this
+// Direct SQL queries: DON'T do this!
+```
+
+### NEVER Modify Database Directly
+
+- Never write raw SQL queries to create fields, templates, or pages
+- Never use `$db->query()` or similar for schema changes
+- Always go through ProcessWire API or RockMigrations
+- If you must run SQL for data migration, create a migration file
+
+### Creating Pages with Data
+
+Use **named parameters** with colon syntax for `createPage()`:
+
+```php
+// CORRECT - Named parameters with colon syntax
+$rm->createPage(
+  template: 'client',
+  parent: '/clients/',
+  name: 'demo-client',
+  title: 'Demo Client',
+  data: [
+    'client_email' => 'demo@example.com',
+    'client_status' => 'active',
+  ],
+);
+
+// WRONG - Array syntax will fail with "Array to string conversion"
+$rm->createPage('/clients/demo-client/', [
+  'template' => 'client',
+  'title' => 'Demo Client',
+]);
+```
