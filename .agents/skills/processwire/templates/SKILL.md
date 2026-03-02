@@ -204,6 +204,17 @@ $config->useMarkupRegions = true;
 $config->appendTemplateFile = '_main.php';
 ```
 
+### Alternative ID Attributes
+
+Use `pw-id` or `data-pw-id` instead of `id` for invisible region markers (removed from final output, hidden from CSS/JS):
+
+```html
+<!-- These are equivalent, but pw-id/data-pw-id won't appear in rendered HTML -->
+<div id="content">...</div>
+<div pw-id="content">...</div>
+<div data-pw-id="content">...</div>
+```
+
 ### How It Works
 
 1. **Region definitions**: HTML tags with `id` attributes in `_main.php`
@@ -251,6 +262,29 @@ $config->appendTemplateFile = '_main.php';
 | `pw-prepend` | Prepend to region                |
 | `pw-before`  | Insert before region             |
 | `pw-after`   | Insert after region              |
+
+**Note:** All `pw-*` attributes also work with `data-pw-*` prefix (e.g., `data-pw-replace`, `data-pw-append`). These are removed from final output.
+
+### Placeholder Tags
+
+Use `<region>` or `<pw-region>` tags for regions where only inner content should appear in output (wrapper tag is removed):
+
+```html
+<!-- Definition in _main.php - wrapper tag won't appear in output -->
+<region id="sidebar">
+  <p>Default sidebar content</p>
+</region>
+
+<!-- Action in template -->
+<pw-region id="sidebar">
+  <h3>Custom Title</h3>
+  <p>Custom content</p>
+</pw-region>
+
+<!-- Final output - no wrapper tag, only inner content -->
+<h3>Custom Title</h3>
+<p>Custom content</p>
+```
 
 ### Populating Regions
 
@@ -333,11 +367,37 @@ Remove class with minus prefix:
 
 ### Debugging Regions
 
-Add this comment to see region debug info:
+Add this comment anywhere in your `<html>...</html>` to see debug output:
 
 ```html
 <!--PW-REGION-DEBUG-->
 ```
+
+**Output format:**
+
+```
+3. replace => #content-head ... <h1 id='content-head'>
+4. replace => #sidebar ... <aside id='sidebar'>
+5. replace => #content-body ... <div class='uk-margin-top' id='content-body'>
+   0.0044 seconds
+```
+
+Format: `number. action => region-id ... tag` followed by processing time.
+
+### Performance Considerations
+
+Markup regions add processing overhead compared to direct/delayed output. For most sites this is negligible, but avoid markup regions if your site outputs very large amounts of markup.
+
+### When to Use Markup Regions
+
+**Best for:**
+- Developers who like direct output simplicity but want delayed output benefits
+- Front-end developers who prefer HTML-first approach
+- New ProcessWire users
+
+**Consider alternatives if:**
+- You already have a working output strategy
+- Your site handles very heavy markup output
 
 ---
 
