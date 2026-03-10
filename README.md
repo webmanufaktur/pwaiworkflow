@@ -41,7 +41,7 @@ _Agents coming soon..._
 
 ## Skills
 
-### ProcessWire (22 skills)
+### ProcessWire
 
 - [Advanced Modules](./.agents/skills/processwire/advanced-modules/SKILL.md)
 - [API](./.agents/skills/processwire/api/SKILL.md)
@@ -70,17 +70,6 @@ _Agents coming soon..._
 
 - [ProcessWire Standards](./.agents/skills/php/php-processwire-standards/SKILL.md)
 
-### Astro
-
-- [Astro](./home/aca/.agents/skills/astro/SKILL.md)
-
-### Tailwind CSS
-
-- [Tailwind Theme Builder](./home/aca/.agents/skills/tailwind-theme-builder/SKILL.md)
-- [Tailwind Design System](./home/aca/.agents/skills/tailwind-design-system/SKILL.md)
-- [Tailwind CSS Patterns](./home/aca/.agents/skills/tailwind-css-patterns/SKILL.md)
-- [Tailwind Advanced Layouts](./home/aca/.agents/skills/tailwindcss-advanced-layouts/SKILL.md)
-
 ### Git
 
 - [Commit Generator](./.agents/skills/git/commit-generator/SKILL.md)
@@ -94,7 +83,6 @@ _Agents coming soon..._
 - [Prompt Rephraser](./.agents/skills/general/prompt-rephraser/SKILL.md)
 - [Skill Generator](./.agents/skills/general/opencode-skill-generator/SKILL.md)
 - [Prompt Optimizer](./.agents/skills/general/prompt-optimizer/SKILL.md)
-- [Find Skills](./home/aca/.agents/skills/find-skills/SKILL.md)
 
 ---
 
