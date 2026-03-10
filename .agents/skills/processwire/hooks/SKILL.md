@@ -565,6 +565,54 @@ class MyModule extends WireData implements Module {
 
 ---
 
+## Module Lifecycle Hooks
+
+Modules can define hookable methods for install, uninstall, and upgrade.
+
+```php
+class MyModule extends WireData implements Module {
+
+    /**
+     * Called when module is installed
+     */
+    public function ___install() {
+        // Create database tables, add fields, etc.
+    }
+
+    /**
+     * Called when module is uninstalled
+     */
+    public function ___uninstall() {
+        // Clean up database tables, fields, etc.
+    }
+
+    /**
+     * Called when module is upgraded
+     *
+     * @param string $fromVersion Previous version
+     * @param string $toVersion New version
+     */
+    public function ___upgrade($fromVersion, $toVersion) {
+        // Migrate data, update config, etc.
+    }
+}
+```
+
+### Usage
+
+```php
+// Trigger install programmatically (rarely needed)
+$modules->install('MyModule');
+
+// Trigger uninstall
+$modules->uninstall('MyModule');
+
+// Trigger upgrade
+// Automatically called when version changes in module config
+```
+
+---
+
 ## Common Hook Targets
 
 ### Page Hooks
@@ -589,14 +637,45 @@ Pages::saveReady      // Before save
 Pages::saved          // After save
 Pages::saveFieldReady // Before field save
 Pages::savedField     // After field save
+Pages::savePageOrFieldReady // Before page or field save
+Pages::savedPageOrField    // After page or field save
 Pages::add            // Add new page
 Pages::added          // After page added
 Pages::delete         // Delete page
+Pages::deleteReady    // Before delete
 Pages::deleted        // After page deleted
 Pages::trash          // Trash page
 Pages::trashed        // After page trashed
 Pages::find           // Find pages
 Pages::found          // After find
+// Publish/Unpublish
+Pages::publishReady   // Before publish
+Pages::published      // After publish
+Pages::unpublishReady // Before unpublish
+Pages::unpublished    // After unpublish
+// Clone
+Pages::clone          // Clone a page
+Pages::cloneReady     // Before clone
+Pages::cloned         // After clone
+// Status/Template changes
+Pages::statusChangeReady // Before status change
+Pages::statusChanged    // After status change
+Pages::templateChanged  // After template change
+// Sorting
+Pages::sort           // Sort pages
+Pages::sorted         // After sorting
+// Move
+Pages::moved          // After page moved
+// Rename
+Pages::renamed        // After page renamed
+// Restore
+Pages::restore        // Restore from trash
+Pages::restored       // After restore
+// Setup
+Pages::setupNew       // Setup new page
+Pages::setupPageName  // Setup page name
+Pages::touch          // Touch page (update modified)
+Pages::emptyTrash     // Empty trash
 ```
 
 ### Session Hooks
@@ -606,6 +685,128 @@ Session::login        // User login
 Session::loginSuccess // Successful login
 Session::loginFailed  // Failed login
 Session::logout       // User logout
+```
+
+### Field Hooks
+
+```php
+Field::getInputfield   // When field input is rendered
+Field::editable        // Check if field is editable for a page/user
+Field::viewable        // Check if field is viewable for a page/user
+Field::getConfigInputfields // When getting field config
+```
+
+### Fieldtype Hooks
+
+```php
+Fieldtype::savePageField      // Before saving field value
+Fieldtype::loadPageField      // When loading field value
+Fieldtype::formatValue        // When formatting value for output
+Fieldtype::markupValue        // When getting markup value
+Fieldtype::getCompatibleFieldtypes // Get compatible fieldtypes
+Fieldtype::createField        // When field is created
+Fieldtype::deleteField        // When field is deleted
+Fieldtype::install            // Fieldtype install
+Fieldtype::uninstall         // Fieldtype uninstall
+```
+
+### Inputfield Hooks
+
+```php
+Inputfield::render           // When inputfield renders
+Inputfield::renderValue      // When inputfield renders value
+Inputfield::processInput     // When processing input
+Inputfield::renderReadyHook  // Before rendering ready
+Inputfield::getConfigInputfields // Get config inputfields
+Inputfield::install          // Inputfield install
+Inputfield::uninstall        // Inputfield uninstall
+```
+
+### Modules Hooks
+
+```php
+Modules::install            // When module is installed
+Modules::uninstall          // When module is uninstalled
+Modules::delete             // When module is deleted
+Modules::saveConfig         // When module config is saved
+Modules::saveModuleConfigData // When module config data saved
+Modules::getModuleConfigInputfields // Get module config
+Modules::refresh            // When modules are refreshed
+Modules::moduleVersionChanged // When module version changes
+```
+
+### TemplateFile Hooks
+
+```php
+TemplateFile::render        // When template file renders
+```
+
+### Wire/WireArray Hooks
+
+```php
+Wire::changed               // When property changes
+Wire::log                   // When logging occurs
+Wire::callUnknown           // When unknown method called
+WireArray::and              // When using & operator
+```
+
+### User Hooks
+
+```php
+User::hasPagePermission     // Check page permission
+User::hasTemplatePermission // Check template permission
+User::setEditor             // Set page editor
+```
+
+### Process Hooks
+
+```php
+Process::execute           // Execute process
+Process::executed           // After execution
+Process::breadcrumb        // Add breadcrumb
+Process::browserTitle      // Set browser title
+Process::headline          // Set headline
+Process::install           // Process install
+Process::uninstall         // Process uninstall
+Process::upgrade           // Process upgrade
+```
+
+---
+
+## Instance-Specific Hooks
+
+Hook a single object instance rather than all instances of a class.
+
+```php
+// Hook ALL pages
+$this->addHookAfter('Page::render', function($event) { });
+
+// Hook SPECIFIC page instance only
+$page->addHookAfter('render', function($event) {
+    // Only runs for this specific $page
+});
+
+// On a specific module instance
+$module = $modules->get('MyModule');
+$module->addHookAfter('myMethod', function($event) { });
+```
+
+### When to Use Instance Hooks
+
+- Modify behavior for one specific page
+- Module-to-module communication
+- Temporary hooks that can be removed easily
+
+```php
+// Example: Add custom rendering to homepage only
+$home = $pages->get('/');
+$home->addHookAfter('render', function($event) {
+    $event->return = str_replace(
+        '<footer>',
+        '<footer class="home-footer">',
+        $event->return
+    );
+});
 ```
 
 ---
@@ -693,3 +894,25 @@ $this->addHookAfter('ProcessPageListRender::getPageLabel', function($event) {
 8. **Performance**: Avoid heavy operations in hooks called frequently (like `Page::render`).
 
 9. **Hook removal**: Use `$event->removeHook(null)` to remove the current hook from within itself.
+
+10. **Class vs instance syntax**: When hooking a specific instance, use shorter syntax:
+
+    ```php
+    // Class-level hook (from module)
+    $this->addHookAfter('Page::render', ...);
+
+    // Instance-level hook
+    $page->addHookAfter('render', ...);
+    ```
+
+11. **Hook conditions are selectors**: Conditional hooks use ProcessWire selectors:
+
+    ```php
+    // Correct - selector syntax
+    $wire->addHookAfter('Page(template=product)::render', ...);
+
+    // Wrong - will not work as expected
+    $wire->addHookAfter('Page::render', ..., ['template' => 'product']);
+    ```
+
+12. **Priority affects execution order**: Lower numbers run first (default is 100). When multiple hooks modify the same data, plan your priorities accordingly.
