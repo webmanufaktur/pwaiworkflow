@@ -41,41 +41,60 @@ _Agents coming soon..._
 
 ## Skills
 
-### ProcessWire
+### ProcessWire (22 skills)
 
-- [Advanced Modules](./.agents/skill/processwire/advanced-modules/SKILL.md)
-- [API](./.agents/skill/processwire/api/SKILL.md)
-- [Custom Page Classes](./.agents/skill/processwire/custom-page-classes/SKILL.md)
-- [Field Configuration](./.agents/skill/processwire/field-configuration/SKILL.md)
-- [Fields](./.agents/skill/processwire/fields/SKILL.md)
-- [Getting Started](./.agents/skill/processwire/getting-started/SKILL.md)
-- [Hooks](./.agents/skill/processwire/hooks/SKILL.md)
-- [Module Checklist](./.agents/skill/processwire/module-checklist/SKILL.md)
-- [Modules](./.agents/skill/processwire/modules/SKILL.md)
-- [Multi-language](./.agents/skill/processwire/multi-language/SKILL.md)
-- [RockMigrations](./.agents/skill/processwire/rockmigrations/SKILL.md)
-- [Security](./.agents/skill/processwire/security/SKILL.md)
-- [Selectors](./.agents/skill/processwire/selectors/SKILL.md)
-- [Templates](./.agents/skill/processwire/templates/SKILL.md)
-- [User Access](./.agents/skill/processwire/user-access/SKILL.md)
+- [Advanced Modules](./.agents/skills/processwire/advanced-modules/SKILL.md)
+- [API](./.agents/skills/processwire/api/SKILL.md)
+- [All Hooks Reference](./.agents/skills/processwire/allhooks.md)
+- [Best Practices](./.agents/skills/processwire/best-practices/SKILL.md)
+- [Custom Page Classes](./.agents/skills/processwire/custom-page-classes/SKILL.md)
+- [Field Configuration](./.agents/skills/processwire/field-configuration/SKILL.md)
+- [Fields](./.agents/skills/processwire/fields/SKILL.md)
+- [FormBuilder](./.agents/skills/processwire/formbuilder/SKILL.md)
+- [Getting Started](./.agents/skills/processwire/getting-started/SKILL.md)
+- [Hooks](./.agents/skills/processwire/hooks/SKILL.md)
+- [InputField Frontend File](./.agents/skills/processwire/inputfield-frontend-file/SKILL.md)
+- [LoginRegister Pro](./.agents/skills/processwire/login-register-pro/SKILL.md)
+- [Module Checklist](./.agents/skills/processwire/module-checklist/SKILL.md)
+- [Modules](./.agents/skills/processwire/modules/SKILL.md)
+- [Multi-language](./.agents/skills/processwire/multi-language/SKILL.md)
+- [ProCache](./.agents/skills/processwire/procache/SKILL.md)
+- [ProMailer](./.agents/skills/processwire/promailer/SKILL.md)
+- [RockMigrations](./.agents/skills/processwire/rockmigrations/SKILL.md)
+- [Security](./.agents/skills/processwire/security/SKILL.md)
+- [Selectors](./.agents/skills/processwire/selectors/SKILL.md)
+- [Templates](./.agents/skills/processwire/templates/SKILL.md)
+- [User Access](./.agents/skills/processwire/user-access/SKILL.md)
 
 ### PHP
 
-- [ProcessWire Standards](./.agents/skill/php/php-processwire-standards/SKILL.md)
+- [ProcessWire Standards](./.agents/skills/php/php-processwire-standards/SKILL.md)
+
+### Astro
+
+- [Astro](./home/aca/.agents/skills/astro/SKILL.md)
+
+### Tailwind CSS
+
+- [Tailwind Theme Builder](./home/aca/.agents/skills/tailwind-theme-builder/SKILL.md)
+- [Tailwind Design System](./home/aca/.agents/skills/tailwind-design-system/SKILL.md)
+- [Tailwind CSS Patterns](./home/aca/.agents/skills/tailwind-css-patterns/SKILL.md)
+- [Tailwind Advanced Layouts](./home/aca/.agents/skills/tailwindcss-advanced-layouts/SKILL.md)
 
 ### Git
 
-- [Commit Message Generator](./.agents/skill/git/commit-generator/SKILL.md)
+- [Commit Generator](./.agents/skills/git/commit-generator/SKILL.md)
 
 ### Markdown
 
-- [GitHub Markdown Alerts](./.agents/skill/markdown/alerts/SKILL.md)
+- [GitHub Markdown Alerts](./.agents/skills/markdown/alerts/SKILL.md)
 
 ### General
 
-- [Prompt Rephraser](./.agents/skill/general/prompt-rephraser/SKILL.md)
-- [Skill Generator](./.agents/skill/general/opencode-skill-generator/SKILL.md)
-- [Prompt Optimizer](./.agents/skill/general/prompt-optimizer/SKILL.md)
+- [Prompt Rephraser](./.agents/skills/general/prompt-rephraser/SKILL.md)
+- [Skill Generator](./.agents/skills/general/opencode-skill-generator/SKILL.md)
+- [Prompt Optimizer](./.agents/skills/general/prompt-optimizer/SKILL.md)
+- [Find Skills](./home/aca/.agents/skills/find-skills/SKILL.md)
 
 ---
 
